@@ -1,0 +1,8 @@
+# direnv
+.direnv/
+
+# vscode
+.vscode/
+
+# input files
+*.input
