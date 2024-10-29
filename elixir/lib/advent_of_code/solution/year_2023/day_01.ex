@@ -1,5 +1,20 @@
-defmodule AOC.Day1 do
-  def line_to_int(line) do
+defmodule AdventOfCode.Solution.Year2023.Day01 do
+  def part1(input) do
+    input
+    |> String.split("\n", trim: true)
+    |> Enum.map(&line_to_int/1)
+    |> Enum.sum()
+  end
+
+  def part2(input) do
+    input
+    |> String.split("\n", trim: true)
+    |> Enum.map(&line_to_part2_line/1)
+    |> Enum.map(&line_to_int/1)
+    |> Enum.sum()
+  end
+
+  defp line_to_int(line) do
     integers =
       line
       |> String.graphemes()
@@ -10,7 +25,7 @@ defmodule AOC.Day1 do
     Integer.undigits([List.first(integers), List.last(integers)])
   end
 
-  def line_to_part2_line(line) do
+  defp line_to_part2_line(line) do
     line
     |> String.replace("one", "o1e")
     |> String.replace("two", "t2o")
@@ -22,25 +37,4 @@ defmodule AOC.Day1 do
     |> String.replace("eight", "e8t")
     |> String.replace("nine", "n9e")
   end
-end
-
-defmodule Main do
-  import AOC.Day1
-  IO.puts("Day 1")
-  IO.write("Part 1: ")
-
-  File.stream!("day1.input", :line)
-  |> Stream.map(&String.trim/1)
-  |> Stream.map(&line_to_int/1)
-  |> Enum.sum()
-  |> IO.puts()
-
-  IO.write("Part 2: ")
-
-  File.stream!("day1.input", :line)
-  |> Stream.map(&String.trim/1)
-  |> Stream.map(&line_to_part2_line/1)
-  |> Stream.map(&line_to_int/1)
-  |> Enum.sum()
-  |> IO.puts()
 end
