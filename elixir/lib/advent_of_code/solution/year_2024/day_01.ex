@@ -20,7 +20,7 @@ defmodule AdventOfCode.Solution.Year2024.Day01 do
           do: list |> Enum.map(&String.to_integer/1)
 
     # convert list 2 into a map of occurrences
-    list2_map = Enum.reduce(list2, %{}, fn x, acc -> Map.update(acc, x, 1, &(&1 + 1)) end)
+    list2_map = count_occurrences(list2)
     # for each element in list 1, see how may times it occurred in list2 then multiply
     list1
     |> Enum.reduce(0, fn x, acc -> acc + Map.get(list2_map, x, 0) * x end)
@@ -40,5 +40,12 @@ defmodule AdventOfCode.Solution.Year2024.Day01 do
 
   defp transpose(matrix) do
     [Enum.map(matrix, &hd/1) | transpose(Enum.map(matrix, &tl/1))]
+  end
+
+  defp count_occurrences(list, acc \\ %{})
+  defp count_occurrences([], acc), do: acc
+
+  defp count_occurrences([head | tail], acc) do
+    count_occurrences(tail, Map.update(acc, head, 1, &(&1 + 1)))
   end
 end
