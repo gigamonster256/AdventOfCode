@@ -15,10 +15,13 @@ defmodule AdventOfCode.Solution.Year2024.Day02 do
   def part1(parsed_input) do
     parsed_input
     |> Enum.map(&is_safe?/1)
-    |> Enum.count(&(&1))
+    |> Enum.count(& &1)
   end
 
-  def part2(_parsed_input) do
+  def part2(parsed_input) do
+    parsed_input
+    |> Enum.map(&is_safe_can_fail_once?/1)
+    |> Enum.count(& &1)
   end
 
   defp process_pair(a, b) do
@@ -31,8 +34,10 @@ defmodule AdventOfCode.Solution.Year2024.Day02 do
   end
 
   defp is_safe?(list, last \\ :begin)
+
   defp is_safe?([head, next | rest], last) do
     result = process_pair(head, next)
+
     cond do
       result == :big_step -> false
       result == :equal -> false
@@ -41,7 +46,20 @@ defmodule AdventOfCode.Solution.Year2024.Day02 do
       true -> is_safe?([next | rest], result)
     end
   end
+
   defp is_safe?([_], _), do: true
   defp is_safe?([], _), do: true
 
+  defp is_safe_can_fail_once?(list) do
+    list
+    |> sublists()
+    |> Enum.any?(&is_safe?/1)
+  end
+
+  defp sublists(list) do
+    0..(length(list) - 1)
+    |> Enum.map(fn i ->
+      List.delete_at(list, i)
+    end)
+  end
 end
