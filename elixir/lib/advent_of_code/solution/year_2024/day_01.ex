@@ -1,36 +1,38 @@
 defmodule AdventOfCode.Solution.Year2024.Day01 do
-  def part1(input) do
-    # split the input into two lists then convert the elements to integers and sort
-    [list1, list2] =
-      for list <-
-            input |> columns_to_lists(),
-          do: list |> Enum.map(&String.to_integer/1) |> Enum.sort()
+  use AdventOfCode.Solution.SharedParse
 
-    # zip list and subtract the elements
-    Enum.zip(list1, list2)
+  # convert input text columns to list of lists
+  @impl true
+  def parse(input) do
+    input
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      line
+      |> String.split()
+      |> Enum.map(&String.to_integer/1)
+    end)
+    |> transpose()
+  end
+
+  def part1(parsed_input) do
+    # split the input into two lists then convert the elements to integers and sort
+    parsed_input
+    |> Enum.map(&Enum.sort/1)
+    |> Enum.zip()
     |> Enum.map(fn {x, y} -> abs(x - y) end)
     |> Enum.sum()
   end
 
-  def part2(input) do
+  def part2(parsed_input) do
     # split the input into two lists
-    [list1, list2] =
-      for list <-
-            input |> columns_to_lists(),
-          do: list |> Enum.map(&String.to_integer/1)
+    [list1, list2] = parsed_input
 
-    # convert list 2 into a map of occurrences
-    list2_map = count_occurrences(list2)
-    # for each element in list 1, see how may times it occurred in list2 then multiply
+    # get frequencies of list2
+    frequencies = Enum.frequencies(list2)
+
     list1
-    |> Enum.reduce(0, fn x, acc -> acc + Map.get(list2_map, x, 0) * x end)
-  end
-
-  defp columns_to_lists(text) do
-    text
-    |> String.split("\n", trim: true)
-    |> Enum.map(fn line -> String.split(line, " ", trim: true) end)
-    |> transpose()
+    |> Enum.map(&(&1 * Map.get(frequencies, &1, 0)))
+    |> Enum.sum()
   end
 
   # https://stackoverflow.com/questions/5389254/transposing-a-2-dimensional-matrix-in-erlang
@@ -40,12 +42,5 @@ defmodule AdventOfCode.Solution.Year2024.Day01 do
 
   defp transpose(matrix) do
     [Enum.map(matrix, &hd/1) | transpose(Enum.map(matrix, &tl/1))]
-  end
-
-  defp count_occurrences(list, acc \\ %{})
-  defp count_occurrences([], acc), do: acc
-
-  defp count_occurrences([head | tail], acc) do
-    count_occurrences(tail, Map.update(acc, head, 1, &(&1 + 1)))
   end
 end

@@ -16,14 +16,20 @@ defmodule AdventOfCode.Solution.Year2024.Day01Test do
     ]
   end
 
+  test "parse", %{input: input} do
+    cols = parse(input)
+
+    assert [[3, 4, 2, 1, 3, 3], [4, 3, 5, 3, 9, 3]] == cols
+  end
+
   test "part1", %{input: input} do
-    result = part1(input)
+    result = input |> parse() |> part1()
 
     assert result == 11
   end
 
   test "part2", %{input: input} do
-    result = part2(input)
+    result = input |> parse() |> part2()
 
     assert result == 31
   end
