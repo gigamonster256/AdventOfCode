@@ -25,7 +25,8 @@ defmodule AdventOfCode.MixProject do
       {:benchee, "~> 1.3"},
       {:libgraph, "~> 0.16"},
       {:tz, "~> 0.26.5"},
-      {:stream_data, "~> 0.6"}
+      {:stream_data, "~> 0.6"},
+      {:nimble_parsec, "~> 1.4"}
     ]
   end
 end
