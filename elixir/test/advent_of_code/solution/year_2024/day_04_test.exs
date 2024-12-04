@@ -5,10 +5,6 @@ defmodule AdventOfCode.Solution.Year2024.Day04Test do
 
   setup do
     [
-      parse_input: """
-      XM
-      AS
-      """,
       input: """
       MMMSXXMASM
       MSAMXMSMSA
@@ -22,12 +18,6 @@ defmodule AdventOfCode.Solution.Year2024.Day04Test do
       MXMXAXMASX
       """
     ]
-  end
-
-  test "parse", %{parse_input: input} do
-    result = parse(input)
-
-    assert result == {%{{0, 0} => "X", {1, 0} => "M", {0, 1} => "A", {1, 1} => "S"}, 2, 2}
   end
 
   test "part1", %{input: input} do

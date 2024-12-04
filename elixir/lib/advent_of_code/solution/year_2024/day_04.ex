@@ -1,47 +1,14 @@
 defmodule AdventOfCode.Solution.Year2024.Day04 do
-  use AdventOfCode.Solution.SharedParse
-
-  @impl true
-  def parse(input) do
-    rows = input |> String.split("\n", trim: true)
-    row_count = Enum.count(rows)
-    col_count = rows |> List.first() |> String.length()
-
-    map =
-      rows
-      |> Enum.with_index()
-      |> Enum.map(fn {row, y} ->
-        row
-        |> String.graphemes()
-        |> Enum.with_index()
-        |> Enum.map(fn {char, x} -> {{x, y}, char} end)
-      end)
-      |> List.flatten()
-      |> Enum.into(%{})
-
-    {map, row_count, col_count}
-  end
+  use AdventOfCode.Solution.GridMap
 
   def part1(input) do
-    {_map, row_count, col_count} = input
-
-    0..(row_count - 1)
-    |> Enum.flat_map(fn y ->
-      0..(col_count - 1)
-      |> Enum.map(fn x -> {x, y} end)
-    end)
+    all_positions(input)
     |> Enum.map(&count_xmas(input, &1))
     |> Enum.sum()
   end
 
   def part2(input) do
-    {_map, row_count, col_count} = input
-
-    1..(row_count - 2)
-    |> Enum.flat_map(fn y ->
-      1..(col_count - 2)
-      |> Enum.map(fn x -> {x, y} end)
-    end)
+    all_positions(input)
     |> Enum.filter(&check_for_x_mas(input, &1))
     |> Enum.count()
   end
@@ -63,16 +30,6 @@ defmodule AdventOfCode.Solution.Year2024.Day04 do
     "M" => "A",
     "A" => "S"
   }
-
-  defp is_valid_location?(input, {x, y}) do
-    {_map, row_count, col_count} = input
-    x >= 0 and x < col_count and y >= 0 and y < row_count
-  end
-
-  defp char_at_pos_is?(input, pos, char) do
-    {map, _row_count, _col_count} = input
-    is_valid_location?(input, pos) and Map.get(map, pos) == char
-  end
 
   defp count_xmas(input, position, last_char \\ nil, direction \\ nil)
 
@@ -126,7 +83,7 @@ defmodule AdventOfCode.Solution.Year2024.Day04 do
       offsets
       |> Enum.all?(fn {{dx, dy}, char} ->
         new_pos = {a_x + dx, a_y + dy}
-        is_valid_location?(input, new_pos) and char_at_pos_is?(input, new_pos, char)
+        char_at_pos_is?(input, new_pos, char)
       end)
     end)
   end
