@@ -64,7 +64,7 @@ defmodule AdventOfCode.Solution.Year2024.Day03 do
             n <- [first_number, second_number],
             do: n |> Enum.reverse() |> List.to_integer()
           )
-          |> Enum.reduce(&Kernel.*/2)
+          |> Enum.product()
 
         acc = acc + mul_result
         {rest, :not_in_mul, acc}
