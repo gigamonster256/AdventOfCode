@@ -10,6 +10,11 @@ defmodule AdventOfCode.Solution.GridMapTest do
       ABC
       DEF
       GHI
+      """,
+      multi_input: """
+      ABC
+      ABC
+      ABC
       """
     ]
   end
@@ -122,5 +127,200 @@ defmodule AdventOfCode.Solution.GridMapTest do
              [nil, nil, "D", "E", "F"],
              [nil, nil, "G", "H", "I"]
            ]
+  end
+
+  test "discard", %{input: input} do
+    input = input |> parse()
+
+    result = discard(input, [])
+    assert result == input
+
+    result = discard(input, "A")
+
+    assert result ==
+             {%{
+                {1, 0} => "B",
+                {2, 0} => "C",
+                {0, 1} => "D",
+                {1, 1} => "E",
+                {2, 1} => "F",
+                {0, 2} => "G",
+                {1, 2} => "H",
+                {2, 2} => "I"
+              }, 3, 3}
+
+    result = discard(input, ["A", "B", "C"])
+
+    assert result ==
+             {%{
+                {0, 1} => "D",
+                {1, 1} => "E",
+                {2, 1} => "F",
+                {0, 2} => "G",
+                {1, 2} => "H",
+                {2, 2} => "I"
+              }, 3, 3}
+  end
+
+  test "multi_discard", %{multi_input: input} do
+    input = input |> parse()
+
+    result = discard(input, "A")
+
+    assert result ==
+             {%{
+                {1, 0} => "B",
+                {2, 0} => "C",
+                {1, 1} => "B",
+                {2, 1} => "C",
+                {1, 2} => "B",
+                {2, 2} => "C"
+              }, 3, 3}
+
+    result = discard(input, ["A", "B", "C"])
+
+    assert result == {%{}, 3, 3}
+  end
+
+  test "replace/3", %{input: input} do
+    input = input |> parse()
+
+    result = replace(input, [], "X")
+    assert result == input
+
+    result = replace(input, ["A"], "X")
+
+    assert result ==
+             {%{
+                {0, 0} => "X",
+                {1, 0} => "B",
+                {2, 0} => "C",
+                {0, 1} => "D",
+                {1, 1} => "E",
+                {2, 1} => "F",
+                {0, 2} => "G",
+                {1, 2} => "H",
+                {2, 2} => "I"
+              }, 3, 3}
+
+    result = replace(input, ["A", "B", "C"], "X")
+
+    assert result ==
+             {%{
+                {0, 0} => "X",
+                {1, 0} => "X",
+                {2, 0} => "X",
+                {0, 1} => "D",
+                {1, 1} => "E",
+                {2, 1} => "F",
+                {0, 2} => "G",
+                {1, 2} => "H",
+                {2, 2} => "I"
+              }, 3, 3}
+  end
+
+  test "multi_replace/3", %{multi_input: input} do
+    input = input |> parse()
+
+    result = replace(input, ["A"], "X")
+
+    assert result ==
+             {%{
+                {0, 0} => "X",
+                {1, 0} => "B",
+                {2, 0} => "C",
+                {0, 1} => "X",
+                {1, 1} => "B",
+                {2, 1} => "C",
+                {0, 2} => "X",
+                {1, 2} => "B",
+                {2, 2} => "C"
+              }, 3, 3}
+
+    result = replace(input, ["A", "B", "C"], "X")
+
+    assert result ==
+             {%{
+                {0, 0} => "X",
+                {1, 0} => "X",
+                {2, 0} => "X",
+                {0, 1} => "X",
+                {1, 1} => "X",
+                {2, 1} => "X",
+                {0, 2} => "X",
+                {1, 2} => "X",
+                {2, 2} => "X"
+              }, 3, 3}
+  end
+
+  test "replace/2", %{input: input} do
+    input = input |> parse()
+
+    result = replace(input, %{"A" => "A"})
+    assert result == input
+
+    result = replace(input, %{"A" => "X"})
+
+    assert result ==
+             {%{
+                {0, 0} => "X",
+                {1, 0} => "B",
+                {2, 0} => "C",
+                {0, 1} => "D",
+                {1, 1} => "E",
+                {2, 1} => "F",
+                {0, 2} => "G",
+                {1, 2} => "H",
+                {2, 2} => "I"
+              }, 3, 3}
+
+    result = replace(input, %{"A" => "X", "B" => "X", "C" => "X"})
+
+    assert result ==
+             {%{
+                {0, 0} => "X",
+                {1, 0} => "X",
+                {2, 0} => "X",
+                {0, 1} => "D",
+                {1, 1} => "E",
+                {2, 1} => "F",
+                {0, 2} => "G",
+                {1, 2} => "H",
+                {2, 2} => "I"
+              }, 3, 3}
+  end
+
+  test "multi_replace/2", %{multi_input: input} do
+    input = input |> parse()
+
+    result = replace(input, %{"A" => "X"})
+
+    assert result ==
+             {%{
+                {0, 0} => "X",
+                {1, 0} => "B",
+                {2, 0} => "C",
+                {0, 1} => "X",
+                {1, 1} => "B",
+                {2, 1} => "C",
+                {0, 2} => "X",
+                {1, 2} => "B",
+                {2, 2} => "C"
+              }, 3, 3}
+
+    result = replace(input, %{"A" => "X", "B" => "X", "C" => "X"})
+
+    assert result ==
+             {%{
+                {0, 0} => "X",
+                {1, 0} => "X",
+                {2, 0} => "X",
+                {0, 1} => "X",
+                {1, 1} => "X",
+                {2, 1} => "X",
+                {0, 2} => "X",
+                {1, 2} => "X",
+                {2, 2} => "X"
+              }, 3, 3}
   end
 end

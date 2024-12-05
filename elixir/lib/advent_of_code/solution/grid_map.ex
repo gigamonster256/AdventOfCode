@@ -65,6 +65,57 @@ defmodule AdventOfCode.Solution.GridMap do
       |> Enum.map(fn pos -> get(input, pos) end)
       |> Enum.chunk_every(2 * border_radius + 1)
     end
+
+    def discard(input, []), do: input
+
+    def discard(input, [char | rest]) do
+      input
+      |> discard(char)
+      |> discard(rest)
+    end
+
+    def discard(input, char) do
+      {map, row_count, col_count} = input
+
+      map =
+        map
+        |> Enum.reduce(%{}, fn {pos, c}, acc ->
+          if c == char, do: acc, else: Map.put(acc, pos, c)
+        end)
+
+      {map, row_count, col_count}
+    end
+
+    def replace(input, [], _replacement), do: input
+
+    def replace(input, chars, replacement) when is_list(chars) do
+      {map, row_count, col_count} = input
+
+      map =
+        map
+        |> Enum.reduce(%{}, fn {pos, c}, acc ->
+          if Enum.member?(chars, c),
+            do: Map.put(acc, pos, replacement),
+            else: Map.put(acc, pos, c)
+        end)
+
+      {map, row_count, col_count}
+    end
+
+    def replace(input, replacement_map) when replacement_map == %{}, do: input
+
+    def replace(input, replacement_map) when is_map(replacement_map) do
+      {map, row_count, col_count} = input
+
+      map =
+        map
+        |> Enum.reduce(%{}, fn {pos, c}, acc ->
+          replacement = Map.get(replacement_map, c, c)
+          Map.put(acc, pos, replacement)
+        end)
+
+      {map, row_count, col_count}
+    end
   end
 
   defmacro __using__(_) do
