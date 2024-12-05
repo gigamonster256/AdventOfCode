@@ -12,7 +12,6 @@ defmodule AdventOfCode.Solution.Year2023.Day02 do
     |> Stream.filter(fn {_, sets} -> sets_are_valid?(sets, available_colors) end)
     |> Stream.map(&elem(&1, 0))
     |> Enum.sum()
-    |> IO.inspect()
   end
 
   def part2(input) do
