@@ -116,6 +116,14 @@ defmodule AdventOfCode.Solution.GridMap do
 
       {map, row_count, col_count}
     end
+
+    def find(input, char) do
+      {map, _row_count, _col_count} = input
+
+      map
+      |> Enum.filter(fn {_, c} -> c == char end)
+      |> Enum.map(fn {pos, _} -> pos end)
+    end
   end
 
   defmacro __using__(_) do

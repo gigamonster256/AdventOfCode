@@ -323,4 +323,48 @@ defmodule AdventOfCode.Solution.GridMapTest do
                 {2, 2} => "X"
               }, 3, 3}
   end
+
+  test "find", %{input: input} do
+    input = input |> parse()
+
+    result = find(input, "A")
+    assert result == [{0, 0}]
+
+    result = find(input, "B")
+    assert result == [{1, 0}]
+
+    result = find(input, "C")
+    assert result == [{2, 0}]
+
+    result = find(input, "D")
+    assert result == [{0, 1}]
+
+    result = find(input, "E")
+    assert result == [{1, 1}]
+
+    result = find(input, "F")
+    assert result == [{2, 1}]
+
+    result = find(input, "G")
+    assert result == [{0, 2}]
+
+    result = find(input, "H")
+    assert result == [{1, 2}]
+
+    result = find(input, "I")
+    assert result == [{2, 2}]
+  end
+
+  test "multi_find", %{multi_input: input} do
+    input = input |> parse()
+
+    result = find(input, "A")
+    assert result == [{0, 0}, {0, 1}, {0, 2}]
+
+    result = find(input, "B")
+    assert result == [{1, 0}, {1, 1}, {1, 2}]
+
+    result = find(input, "C")
+    assert result == [{2, 0}, {2, 1}, {2, 2}]
+  end
 end
