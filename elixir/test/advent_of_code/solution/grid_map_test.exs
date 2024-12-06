@@ -367,4 +367,23 @@ defmodule AdventOfCode.Solution.GridMapTest do
     result = find(input, "C")
     assert result == [{2, 0}, {2, 1}, {2, 2}]
   end
+
+  test "put", %{input: input} do
+    input = input |> parse()
+
+    result = put(input, {0, 0}, "X")
+
+    assert result ==
+             {%{
+                {0, 0} => "X",
+                {1, 0} => "B",
+                {2, 0} => "C",
+                {0, 1} => "D",
+                {1, 1} => "E",
+                {2, 1} => "F",
+                {0, 2} => "G",
+                {1, 2} => "H",
+                {2, 2} => "I"
+              }, 3, 3}
+  end
 end

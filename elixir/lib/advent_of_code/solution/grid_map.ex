@@ -124,6 +124,14 @@ defmodule AdventOfCode.Solution.GridMap do
       |> Enum.filter(fn {_, c} -> c == char end)
       |> Enum.map(fn {pos, _} -> pos end)
     end
+
+    def put(input, pos, char) do
+      {map, row_count, col_count} = input
+
+      map = Map.put(map, pos, char)
+
+      {map, row_count, col_count}
+    end
   end
 
   defmacro __using__(_) do
