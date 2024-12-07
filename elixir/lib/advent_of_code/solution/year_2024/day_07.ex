@@ -23,17 +23,19 @@ defmodule AdventOfCode.Solution.Year2024.Day07 do
 
   def part1(input) do
     input
-    |> Stream.map(&Tuple.to_list/1)
-    |> Stream.filter(fn args -> apply(&can_result_in?/2, args) end)
-    |> Stream.map(&hd/1)
+    |> Flow.from_enumerable()
+    |> Flow.map(&Tuple.to_list/1)
+    |> Flow.filter(fn args -> apply(&can_result_in?/2, args) end)
+    |> Flow.map(&hd/1)
     |> Enum.sum()
   end
 
   def part2(input) do
     input
-    |> Stream.map(&Tuple.to_list/1)
-    |> Stream.filter(fn args -> apply(&can_result_in_with_concat?/2, args) end)
-    |> Stream.map(&hd/1)
+    |> Flow.from_enumerable()
+    |> Flow.map(&Tuple.to_list/1)
+    |> Flow.filter(fn args -> apply(&can_result_in_with_concat?/2, args) end)
+    |> Flow.map(&hd/1)
     |> Enum.sum()
   end
 
