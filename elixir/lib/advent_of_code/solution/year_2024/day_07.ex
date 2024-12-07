@@ -9,78 +9,88 @@ defmodule AdventOfCode.Solution.Year2024.Day07 do
   end
 
   defp parse_row(row) do
-    [total, components] =
-      row
-      |> String.split(": ")
+    [total, operands] = String.split(row, ": ")
 
-    total =
-      total
-      |> String.to_integer()
+    total = String.to_integer(total)
 
-    components =
-      components
+    operands =
+      operands
       |> String.split()
       |> Enum.map(&String.to_integer/1)
 
-    {total, components}
+    {total, operands}
   end
 
   def part1(input) do
     input
-    |> Stream.filter(fn {total, components} -> can_result_in?(total, components) end)
-    |> Stream.map(fn {total, _} -> total end)
+    |> Stream.map(&Tuple.to_list/1)
+    |> Stream.filter(fn args -> apply(&can_result_in?/2, args) end)
+    |> Stream.map(&hd/1)
     |> Enum.sum()
   end
 
   def part2(input) do
     input
-    |> Stream.filter(fn {total, components} -> can_result_in_with_concat?(total, components) end)
-    |> Stream.map(fn {total, _} -> total end)
+    |> Stream.map(&Tuple.to_list/1)
+    |> Stream.filter(fn args -> apply(&can_result_in_with_concat?/2, args) end)
+    |> Stream.map(&hd/1)
     |> Enum.sum()
   end
 
-  defp can_result_in?(target, components, acc \\ nil)
+  defp can_result_in?(target, operands, acc \\ 0)
   defp can_result_in?(target, [], acc), do: acc == target
 
-  defp can_result_in?(target, components, nil) do
-    args = [target, components, &can_result_in?/3]
+  defp can_result_in?(target, operands, 0) do
+    args = [target, operands, &can_result_in?/3]
 
     [&can_add_to?/3, &can_multiply_to?/3]
     |> Enum.any?(&apply(&1, args))
   end
 
-  defp can_result_in?(target, components, acc) do
-    args = [target, components, &can_result_in?/3, acc]
+  defp can_result_in?(target, operands, acc) do
+    args = [target, operands, &can_result_in?/3, acc]
 
     [&can_add_to?/4, &can_multiply_to?/4]
     |> Enum.any?(&apply(&1, args))
   end
 
-  defp can_result_in_with_concat?(target, components, acc \\ nil)
+  defp can_result_in_with_concat?(target, operands, acc \\ 0)
   defp can_result_in_with_concat?(target, [], acc), do: acc == target
 
-  defp can_result_in_with_concat?(target, components, nil) do
-    args = [target, components, &can_result_in_with_concat?/3]
+  defp can_result_in_with_concat?(target, operands, 0) do
+    args = [target, operands, &can_result_in_with_concat?/3]
 
     [&can_add_to?/3, &can_multiply_to?/3, &can_concat_to?/3]
     |> Enum.any?(&apply(&1, args))
   end
 
-  defp can_result_in_with_concat?(target, components, acc) do
-    args = [target, components, &can_result_in_with_concat?/3, acc]
+  defp can_result_in_with_concat?(target, operands, acc) do
+    args = [target, operands, &can_result_in_with_concat?/3, acc]
 
     [&can_add_to?/4, &can_multiply_to?/4, &can_concat_to?/4]
     |> Enum.any?(&apply(&1, args))
   end
 
-  defp can_add_to?(target, [head | tail], callback, acc \\ 0),
-    do: callback.(target, tail, acc + head)
+  defp can_op_to?(target, [head | tail], callback, acc, op),
+    do: callback.(target, tail, op.(acc, head))
 
-  defp can_multiply_to?(target, [head | tail], callback, acc \\ 1),
-    do: callback.(target, tail, acc * head)
+  defp can_add_to?(target, operands, callback, acc \\ 0)
+  defp can_add_to?(target, _, _callback, acc) when acc > target, do: false
 
-  defp can_concat_to?(target, [head | tail], callback, acc \\ 0) do
-    acc = (Integer.digits(acc) ++ Integer.digits(head)) |> Integer.undigits()
-    callback.(target, tail, acc)
+  defp can_add_to?(target, operands, callback, acc),
+    do: can_op_to?(target, operands, callback, acc, &Kernel.+/2)
+
+  defp can_multiply_to?(target, operands, callback, acc \\ 1)
+  defp can_multiply_to?(target, _, _callback, acc) when acc > target, do: false
+
+  defp can_multiply_to?(target, operands, callback, acc),
+    do: can_op_to?(target, operands, callback, acc, &Kernel.*/2)
+
+  defp can_concat_to?(target, operands, callback, acc \\ 0)
+  defp can_concat_to?(target, _, _callback, acc) when acc > target, do: false
+
+  defp can_concat_to?(target, operands, callback, acc) do
+    concat = &((Integer.digits(&1) ++ Integer.digits(&2)) |> Integer.undigits())
+    can_op_to?(target, operands, callback, acc, concat)
   end
 end
