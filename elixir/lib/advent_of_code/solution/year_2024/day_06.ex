@@ -18,17 +18,18 @@ defmodule AdventOfCode.Solution.Year2024.Day06 do
 
     # brute force-ish
     all_positions(input)
+    |> Flow.from_enumerable()
     # cant be the starting position
-    |> Stream.reject(&(&1 == pos))
+    |> Flow.reject(&(&1 == pos))
     # replacing an obstacle with an obstacle is not a loop
-    |> Stream.reject(&char_at_pos_is?(input, &1, @obstacle))
+    |> Flow.reject(&char_at_pos_is?(input, &1, @obstacle))
     # must be on the original path
-    |> Stream.filter(fn pos ->
+    |> Flow.filter(fn pos ->
       [:left, :right, :up, :down]
       |> Enum.any?(&is_on_path?(path, {pos, &1}))
     end)
     # check for loops
-    |> Stream.filter(
+    |> Flow.filter(
       # replace the path position with an obstacle
       &is_loop?(put(input, &1, @obstacle), pos, direction)
     )
