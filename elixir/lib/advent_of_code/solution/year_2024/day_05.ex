@@ -74,7 +74,7 @@ defmodule AdventOfCode.Solution.Year2024.Day05 do
       # note: the problem does not menion transitivity
       # so we assume we are given a consistent set of rules
       # with the transitive associations already resolved
-      if b in illegal_nums(rules, a), do: true, else: false
+      b in illegal_nums(rules, a)
     end)
   end
 end
