@@ -132,6 +132,15 @@ defmodule AdventOfCode.Solution.GridMap do
 
       {map, row_count, col_count}
     end
+
+    # get unique elements in a grid map
+    def uniq(input) do
+      {map, _row_count, _col_count} = input
+
+      map
+      |> Enum.map(fn {_, c} -> c end)
+      |> Enum.uniq()
+    end
   end
 
   defmacro __using__(_) do
