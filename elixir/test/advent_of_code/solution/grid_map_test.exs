@@ -15,6 +15,11 @@ defmodule AdventOfCode.Solution.GridMapTest do
       ABC
       ABC
       ABC
+      """,
+      mapper_input: """
+      123
+      456
+      789
       """
     ]
   end
@@ -401,5 +406,24 @@ defmodule AdventOfCode.Solution.GridMapTest do
     result = uniq(input)
 
     assert result == ["A", "B", "C"]
+  end
+
+  defp mapper(char), do: String.to_integer(char)
+
+  test "mapper", %{mapper_input: input} do
+    result = parse(input, &mapper/1)
+
+    assert result ==
+             {%{
+                {0, 0} => 1,
+                {1, 0} => 2,
+                {2, 0} => 3,
+                {0, 1} => 4,
+                {1, 1} => 5,
+                {2, 1} => 6,
+                {0, 2} => 7,
+                {1, 2} => 8,
+                {2, 2} => 9
+              }, 3, 3}
   end
 end

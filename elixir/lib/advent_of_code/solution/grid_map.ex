@@ -1,5 +1,5 @@
 defmodule AdventOfCode.Solution.GridMap do
-  def parse(input) do
+  def parse(input, mapper \\ &default_mapper/1) do
     rows = input |> String.split("\n", trim: true)
     row_count = Enum.count(rows)
     col_count = rows |> List.first() |> String.length()
@@ -11,13 +11,15 @@ defmodule AdventOfCode.Solution.GridMap do
         row
         |> String.graphemes()
         |> Enum.with_index()
-        |> Enum.map(fn {char, x} -> {{x, y}, char} end)
+        |> Enum.map(fn {char, x} -> {{x, y}, mapper.(char)} end)
       end)
       |> List.flatten()
       |> Enum.into(%{})
 
     {map, row_count, col_count}
   end
+
+  def default_mapper(char), do: char
 
   defmodule HelperFunctions do
     def get(input, pos) do
@@ -147,8 +149,12 @@ defmodule AdventOfCode.Solution.GridMap do
     quote do
       use AdventOfCode.Solution.SharedParse
 
+      def mapper(char), do: AdventOfCode.Solution.GridMap.default_mapper(char)
+
+      defoverridable mapper: 1
+
       @impl true
-      def parse(input), do: AdventOfCode.Solution.GridMap.parse(input)
+      def parse(input), do: AdventOfCode.Solution.GridMap.parse(input, &mapper/1)
 
       import AdventOfCode.Solution.GridMap.HelperFunctions
     end
