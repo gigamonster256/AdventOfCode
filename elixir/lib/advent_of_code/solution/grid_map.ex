@@ -7,13 +7,12 @@ defmodule AdventOfCode.Solution.GridMap do
     map =
       rows
       |> Enum.with_index()
-      |> Enum.map(fn {row, y} ->
+      |> Enum.flat_map(fn {row, y} ->
         row
         |> String.graphemes()
         |> Enum.with_index()
         |> Enum.map(fn {char, x} -> {{x, y}, mapper.(char)} end)
       end)
-      |> List.flatten()
       |> Enum.into(%{})
 
     {map, row_count, col_count}
@@ -24,7 +23,10 @@ defmodule AdventOfCode.Solution.GridMap do
   defmodule HelperFunctions do
     def get(input, pos) do
       {map, _row_count, _col_count} = input
-      Map.get(map, pos)
+
+      if is_valid_position?(input, pos),
+        do: Map.get(map, pos),
+        else: :out_of_bounds
     end
 
     def is_valid_position?(input, {x, y}) do
@@ -33,7 +35,7 @@ defmodule AdventOfCode.Solution.GridMap do
     end
 
     def char_at_pos_is?(input, pos, char) do
-      is_valid_position?(input, pos) and get(input, pos) == char
+      get(input, pos) == char
     end
 
     def all_positions(input) do
@@ -61,31 +63,23 @@ defmodule AdventOfCode.Solution.GridMap do
     end
 
     def get_square_around(input, {x, y}, border_radius \\ 1) do
-      Enum.flat_map(-border_radius..border_radius, fn dy ->
+      Stream.flat_map(-border_radius..border_radius, fn dy ->
         Enum.map(-border_radius..border_radius, fn dx -> {x + dx, y + dy} end)
       end)
-      |> Enum.map(fn pos -> get(input, pos) end)
+      |> Stream.map(&get(input, &1))
       |> Enum.chunk_every(2 * border_radius + 1)
     end
 
-    def discard(input, []), do: input
+    def reject(input, []), do: input
 
-    def discard(input, [char | rest]) do
+    def reject(input, [char | rest]) do
       input
-      |> discard(char)
-      |> discard(rest)
+      |> reject(char)
+      |> reject(rest)
     end
 
-    def discard(input, char) do
-      {map, row_count, col_count} = input
-
-      map =
-        map
-        |> Enum.reduce(%{}, fn {pos, c}, acc ->
-          if c == char, do: acc, else: Map.put(acc, pos, c)
-        end)
-
-      {map, row_count, col_count}
+    def reject(input, char) do
+      replace(input, %{char => :rejected})
     end
 
     def replace(input, [], _replacement), do: input
@@ -94,11 +88,9 @@ defmodule AdventOfCode.Solution.GridMap do
       {map, row_count, col_count} = input
 
       map =
-        map
-        |> Enum.reduce(%{}, fn {pos, c}, acc ->
-          if Enum.member?(chars, c),
-            do: Map.put(acc, pos, replacement),
-            else: Map.put(acc, pos, c)
+        Map.new(map, fn {pos, c} ->
+          replacement = if Enum.member?(chars, c), do: replacement, else: c
+          {pos, replacement}
         end)
 
       {map, row_count, col_count}
@@ -110,10 +102,9 @@ defmodule AdventOfCode.Solution.GridMap do
       {map, row_count, col_count} = input
 
       map =
-        map
-        |> Enum.reduce(%{}, fn {pos, c}, acc ->
+        Map.new(map, fn {pos, c} ->
           replacement = Map.get(replacement_map, c, c)
-          Map.put(acc, pos, replacement)
+          {pos, replacement}
         end)
 
       {map, row_count, col_count}
@@ -123,8 +114,8 @@ defmodule AdventOfCode.Solution.GridMap do
       {map, _row_count, _col_count} = input
 
       map
-      |> Enum.filter(fn {_, c} -> c == char end)
-      |> Enum.map(fn {pos, _} -> pos end)
+      |> Map.keys()
+      |> Enum.filter(&char_at_pos_is?(input, &1, char))
     end
 
     def put(input, pos, char) do
@@ -140,7 +131,7 @@ defmodule AdventOfCode.Solution.GridMap do
       {map, _row_count, _col_count} = input
 
       map
-      |> Enum.map(fn {_, c} -> c end)
+      |> Map.values()
       |> Enum.uniq()
     end
   end
@@ -149,7 +140,7 @@ defmodule AdventOfCode.Solution.GridMap do
     quote do
       use AdventOfCode.Solution.SharedParse
 
-      def mapper(char), do: AdventOfCode.Solution.GridMap.default_mapper(char)
+      defp mapper(char), do: AdventOfCode.Solution.GridMap.default_mapper(char)
 
       defoverridable mapper: 1
 

@@ -99,6 +99,8 @@ defmodule AdventOfCode.Solution.GridMapTest do
   test "get_square_around", %{input: input} do
     input = input |> parse()
 
+    oob = :out_of_bounds
+
     result = get_square_around(input, {0, 0}, 0)
     assert result == [["A"]]
 
@@ -107,7 +109,7 @@ defmodule AdventOfCode.Solution.GridMapTest do
 
     result = get_square_around(input, {0, 0}, 1)
     assert result == get_square_around(input, {0, 0})
-    assert result == [[nil, nil, nil], [nil, "A", "B"], [nil, "D", "E"]]
+    assert result == [[oob, oob, oob], [oob, "A", "B"], [oob, "D", "E"]]
 
     result = get_square_around(input, {1, 1}, 1)
     assert result == get_square_around(input, {1, 1})
@@ -116,34 +118,35 @@ defmodule AdventOfCode.Solution.GridMapTest do
     result = get_square_around(input, {1, 1}, 2)
 
     assert result == [
-             [nil, nil, nil, nil, nil],
-             [nil, "A", "B", "C", nil],
-             [nil, "D", "E", "F", nil],
-             [nil, "G", "H", "I", nil],
-             [nil, nil, nil, nil, nil]
+             [oob, oob, oob, oob, oob],
+             [oob, "A", "B", "C", oob],
+             [oob, "D", "E", "F", oob],
+             [oob, "G", "H", "I", oob],
+             [oob, oob, oob, oob, oob]
            ]
 
     result = get_square_around(input, {0, 0}, 2)
 
     assert result == [
-             [nil, nil, nil, nil, nil],
-             [nil, nil, nil, nil, nil],
-             [nil, nil, "A", "B", "C"],
-             [nil, nil, "D", "E", "F"],
-             [nil, nil, "G", "H", "I"]
+             [oob, oob, oob, oob, oob],
+             [oob, oob, oob, oob, oob],
+             [oob, oob, "A", "B", "C"],
+             [oob, oob, "D", "E", "F"],
+             [oob, oob, "G", "H", "I"]
            ]
   end
 
-  test "discard", %{input: input} do
+  test "reject", %{input: input} do
     input = input |> parse()
 
-    result = discard(input, [])
+    result = reject(input, [])
     assert result == input
 
-    result = discard(input, "A")
+    result = reject(input, "A")
 
     assert result ==
              {%{
+                {0, 0} => :rejected,
                 {1, 0} => "B",
                 {2, 0} => "C",
                 {0, 1} => "D",
@@ -154,10 +157,13 @@ defmodule AdventOfCode.Solution.GridMapTest do
                 {2, 2} => "I"
               }, 3, 3}
 
-    result = discard(input, ["A", "B", "C"])
+    result = reject(input, ["A", "B", "C"])
 
     assert result ==
              {%{
+                {0, 0} => :rejected,
+                {1, 0} => :rejected,
+                {2, 0} => :rejected,
                 {0, 1} => "D",
                 {1, 1} => "E",
                 {2, 1} => "F",
@@ -167,24 +173,38 @@ defmodule AdventOfCode.Solution.GridMapTest do
               }, 3, 3}
   end
 
-  test "multi_discard", %{multi_input: input} do
+  test "multi_reject", %{multi_input: input} do
     input = input |> parse()
 
-    result = discard(input, "A")
+    result = reject(input, "A")
 
     assert result ==
              {%{
+                {0, 0} => :rejected,
                 {1, 0} => "B",
                 {2, 0} => "C",
+                {0, 1} => :rejected,
                 {1, 1} => "B",
                 {2, 1} => "C",
+                {0, 2} => :rejected,
                 {1, 2} => "B",
                 {2, 2} => "C"
               }, 3, 3}
 
-    result = discard(input, ["A", "B", "C"])
+    result = reject(input, ["A", "B", "C"])
 
-    assert result == {%{}, 3, 3}
+    assert result ==
+             {%{
+                {0, 0} => :rejected,
+                {1, 0} => :rejected,
+                {2, 0} => :rejected,
+                {0, 1} => :rejected,
+                {1, 1} => :rejected,
+                {2, 1} => :rejected,
+                {0, 2} => :rejected,
+                {1, 2} => :rejected,
+                {2, 2} => :rejected
+              }, 3, 3}
   end
 
   test "replace/3", %{input: input} do

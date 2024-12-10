@@ -2,6 +2,7 @@ defmodule AdventOfCode.Solution.Year2024.Day06 do
   use AdventOfCode.Solution.GridMap
 
   @obstacle "#"
+  @open "."
 
   def part1(input) do
     {pos, direction} = starting_position(input)
@@ -17,18 +18,11 @@ defmodule AdventOfCode.Solution.Year2024.Day06 do
     path = path_taken(input, pos, direction)
 
     # brute force-ish
-    all_positions(input)
+    input
+    # open tiles on the path
+    |> find(@open)
     |> Flow.from_enumerable()
-    # cant be the starting position
-    |> Flow.reject(&(&1 == pos))
-    # replacing an obstacle with an obstacle is not a loop
-    |> Flow.reject(&char_at_pos_is?(input, &1, @obstacle))
-    # must be on the original path
-    |> Flow.filter(fn pos ->
-      [:left, :right, :up, :down]
-      |> Enum.any?(&is_on_path?(path, {pos, &1}))
-    end)
-    # check for loops
+    |> Flow.filter(&is_on_path?(path, &1))
     |> Flow.filter(
       # replace the path position with an obstacle
       &is_loop?(put(input, &1, @obstacle), pos, direction)
@@ -51,11 +45,17 @@ defmodule AdventOfCode.Solution.Year2024.Day06 do
   end
 
   @turn_right %{left: :up, up: :right, right: :down, down: :left}
+  @directions %{
+    :left => {-1, 0},
+    :right => {1, 0},
+    :up => {0, -1},
+    :down => {0, 1}
+  }
 
-  defp move({x, y}, :left), do: {x - 1, y}
-  defp move({x, y}, :right), do: {x + 1, y}
-  defp move({x, y}, :up), do: {x, y - 1}
-  defp move({x, y}, :down), do: {x, y + 1}
+  defp move({x, y}, {dx, dy}), do: {x + dx, y + dy}
+  defp move({x, y}, direction) when is_atom(direction) do
+    move({x, y}, Map.get(@directions, direction))
+  end
 
   defp path_taken(input, pos, direction, path \\ MapSet.new()) do
     path = MapSet.put(path, {pos, direction})
@@ -63,7 +63,7 @@ defmodule AdventOfCode.Solution.Year2024.Day06 do
     next_pos = move(pos, direction)
 
     case get(input, next_pos) do
-      nil -> path
+      :out_of_bounds -> path
       @obstacle -> path_taken(input, pos, @turn_right[direction], path)
       _ -> path_taken(input, next_pos, direction, path)
     end
@@ -75,8 +75,14 @@ defmodule AdventOfCode.Solution.Year2024.Day06 do
     |> Enum.uniq()
   end
 
-  defp is_on_path?(path, pos_with_direction) do
-    MapSet.member?(path, pos_with_direction)
+  defp is_on_path?(path, {_pos, direction} = pos) when is_atom(direction) do
+    MapSet.member?(path, pos)
+  end
+
+  defp is_on_path?(path, pos) do
+    @directions
+    |> Map.keys()
+    |> Enum.any?(&is_on_path?(path, {pos, &1}))
   end
 
   defp is_loop?(input, pos, direction, path \\ MapSet.new()) do
@@ -87,7 +93,7 @@ defmodule AdventOfCode.Solution.Year2024.Day06 do
         next_pos = move(pos, direction)
 
         case get(input, next_pos) do
-          nil -> false
+          :out_of_bounds -> false
           @obstacle -> is_loop?(input, pos, @turn_right[direction], path)
           _ -> is_loop?(input, next_pos, direction, path)
         end

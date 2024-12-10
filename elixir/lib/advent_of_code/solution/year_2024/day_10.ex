@@ -2,8 +2,8 @@ defmodule AdventOfCode.Solution.Year2024.Day10 do
   use AdventOfCode.Solution.GridMap
 
   # handle examples with . in the input
-  def mapper("."), do: nil
-  def mapper(char),do: String.to_integer(char)
+  defp mapper("."), do: :invalid
+  defp mapper(char), do: String.to_integer(char)
 
   def part1(input) do
     trailheads(input)
