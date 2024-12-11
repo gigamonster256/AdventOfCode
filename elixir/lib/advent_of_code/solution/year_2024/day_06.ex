@@ -53,6 +53,7 @@ defmodule AdventOfCode.Solution.Year2024.Day06 do
   }
 
   defp move({x, y}, {dx, dy}), do: {x + dx, y + dy}
+
   defp move({x, y}, direction) when is_atom(direction) do
     move({x, y}, Map.get(@directions, direction))
   end
