@@ -28,7 +28,8 @@ defmodule AdventOfCode.MixProject do
       {:stream_data, "~> 0.6"},
       {:nimble_parsec, "~> 1.4"},
       {:flow, "~> 1.2"},
-      {:permutation, "~> 0.2.0"}
+      {:permutation, "~> 0.2.0"},
+      {:memoize, "~> 1.4"}
     ]
   end
 end

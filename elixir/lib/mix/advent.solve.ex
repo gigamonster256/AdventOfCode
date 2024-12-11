@@ -85,7 +85,8 @@ defmodule Mix.Tasks.Advent.Solve do
   @impl Mix.Task
   def run(raw_args) do
     with {:ok, args} <- Args.parse(raw_args),
-         {:ok, module} <- fetch_solution_module(args) do
+         {:ok, module} <- fetch_solution_module(args),
+         {:ok, _} = Application.ensure_all_started(:memoize) do
       input = AdventOfCode.Input.get!(args.day, args.year)
 
       setting_combo_id = get_setting_combo_id(args, shared_parse?(module))
