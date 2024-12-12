@@ -446,4 +446,34 @@ defmodule AdventOfCode.Solution.GridMapTest do
                 {2, 2} => 9
               }, 3, 3}
   end
+
+  test "uniq_find", %{input: input} do
+    input = input |> parse()
+
+    result = uniq_find(input)
+
+    assert result == %{
+             "A" => [{0, 0}],
+             "B" => [{1, 0}],
+             "C" => [{2, 0}],
+             "D" => [{0, 1}],
+             "E" => [{1, 1}],
+             "F" => [{2, 1}],
+             "G" => [{0, 2}],
+             "H" => [{1, 2}],
+             "I" => [{2, 2}]
+           }
+  end
+
+  test "multi_uniq_find", %{multi_input: input} do
+    input = input |> parse()
+
+    result = uniq_find(input)
+
+    assert result == %{
+             "A" => [{0, 2}, {0, 1}, {0, 0}],
+             "B" => [{1, 2}, {1, 1}, {1, 0}],
+             "C" => [{2, 2}, {2, 1}, {2, 0}]
+           }
+  end
 end

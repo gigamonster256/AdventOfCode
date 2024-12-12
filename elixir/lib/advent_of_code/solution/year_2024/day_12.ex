@@ -3,8 +3,8 @@ defmodule AdventOfCode.Solution.Year2024.Day12 do
 
   def part1(input) do
     input
-    |> uniq()
-    |> Enum.map(&find(input, &1))
+    |> uniq_find()
+    |> Map.values()
     |> Enum.flat_map(&regions/1)
     |> Enum.map(&price/1)
     |> Enum.sum()
@@ -12,10 +12,10 @@ defmodule AdventOfCode.Solution.Year2024.Day12 do
 
   def part2(input) do
     input
-    |> uniq()
-    |> Enum.map(&find(input, &1))
+    |> uniq_find()
+    |> Map.values()
     |> Enum.flat_map(&regions/1)
-    |> Enum.map(&new_price/1)
+    |> Enum.map(&bulk_price/1)
     |> Enum.sum()
   end
 
@@ -28,43 +28,47 @@ defmodule AdventOfCode.Solution.Year2024.Day12 do
     right: {1, 0}
   }
 
-  defp neighbor_positions(pos) do
-    {x, y} = pos
+  defp move({x, y}, {dx, dy}), do: {x + dx, y + dy}
 
-    @directions
-    |> Enum.map(&Map.get(@offsets, &1))
-    |> Enum.map(fn {dx, dy} -> {x + dx, y + dy} end)
+  defp neighbor_positions(pos) do
+    @offsets
+    |> Map.values()
+    |> Enum.map(&move(pos, &1))
   end
 
-  defp regions(all_positions) do
-    all_positions
-    |> Stream.unfold(fn positions ->
-      if Enum.empty?(positions),
-        do: nil,
-        else:
-          (
-            [start | positions] = positions
-            {region, remaining} = greedy_region(start, positions)
-            {region, remaining }
-          )
-    end)
+  defp regions(positions) do
+    positions
+    |> MapSet.new()
+    |> Stream.unfold(&(Enum.take(&1, 1) |> region(&1)))
     |> Enum.to_list()
   end
 
-  defp greedy_region(pos, positions, region \\ MapSet.new()) do
-    region = MapSet.put(region, pos)
+  defp region(pos, positions, region \\ MapSet.new())
+  defp region([], _positions, _region), do: nil
+  defp region([pos], positions, region), do: region(pos, positions, region)
 
-    neighbor_positions(pos)
-    |> Enum.filter(&Enum.member?(positions, &1))
+  defp region(pos, positions, region) do
+    region = MapSet.put(region, pos)
+    positions = MapSet.delete(positions, pos)
+
+    neighbors =
+      neighbor_positions(pos)
+      |> Enum.filter(&MapSet.member?(positions, &1))
+
+    positions =
+      neighbors
+      |> Enum.reduce(positions, fn neighbor, positions ->
+        MapSet.delete(positions, neighbor)
+      end)
+
+    neighbors
     |> Enum.reduce({region, positions}, fn neighbor, {region, positions} ->
-      if Enum.member?(positions, neighbor),
-        do: greedy_region(neighbor, Enum.reject(positions, &(&1 == neighbor)), region),
-        else: {region, positions}
+      region(neighbor, positions, region)
     end)
   end
 
-  defp price(region, part2 \\ false) do
-    area(region) * if part2, do: perimiter_using_part2(region), else: perimiter(region)
+  defp price(region) do
+    area(region) * perimiter(region)
   end
 
   defp area(region), do: MapSet.size(region)
@@ -72,108 +76,82 @@ defmodule AdventOfCode.Solution.Year2024.Day12 do
   defp perimiter(region) do
     region
     |> Enum.reduce(0, fn pos, acc ->
-      neighbors = neighbor_positions(pos)
-      acc + (4 - Enum.count(neighbors, &MapSet.member?(region, &1)))
+      neighbors_in_region = neighbor_positions(pos) |> Enum.count(&MapSet.member?(region, &1))
+      acc + 4 - neighbors_in_region
     end)
   end
 
-  defp perimiter_using_part2(region) do
+  defp bulk_price(region) do
+    area(region) * count_sides(region)
+  end
+
+  defp edges(region) do
     region
-    |> region_edges()
+    # find all positions that have a neighbor that is not in the region
+    |> Enum.reject(fn pos ->
+      neighbor_positions(pos)
+      |> Enum.all?(&MapSet.member?(region, &1))
+    end)
+    # get the external edges of each position
+    |> Enum.flat_map(&external_edges(region, &1))
+    |> MapSet.new()
+  end
+
+  defp external_edges(region, pos) do
+    @directions
+    |> Enum.map(&{pos, &1})
+    |> Enum.reject(fn {pos, side} ->
+      pos = move(pos, @offsets[side])
+      MapSet.member?(region, pos)
+    end)
+  end
+
+  defp count_sides(region) do
+    region
+    |> edges()
+    |> Stream.unfold(&(Enum.take(&1, 1) |> side(&1)))
     |> Enum.count()
   end
 
-  defp new_price(region) do
-    area(region) * sides(region)
-  end
+  defp side(edge, other_edges, side \\ MapSet.new())
+  defp side([], _other_edges, _side), do: nil
+  defp side([edge], other_edges, side), do: side(edge, other_edges, side)
 
-  defp all_possible_edges(region) do
-    region
-    |> Enum.flat_map(fn pos ->
-      @directions
-      |> Enum.map(fn direction -> {pos, direction} end)
-    end)
-  end
-
-  defp region_edges(region) do
-    region
-    |> all_possible_edges()
-    |> annihilate_same_edges()
-  end
-
-  defp sides(region) do
-    region
-    |> region_edges()
-    |> Stream.unfold(fn edges ->
-      if Enum.empty?(edges),
-        do: nil,
-        else:
-          (
-            [edge | edges] = edges
-            {_, edges} = greedy_side(edge, edges)
-            {nil, edges}
-          )
-    end)
-    |> Enum.count()
-  end
-
-  defp greedy_side(edge, other_edges, side \\ MapSet.new()) do
+  defp side(edge, other_edges, side) do
     side = MapSet.put(side, edge)
+    other_edges = MapSet.delete(other_edges, edge)
 
-    edge_neighbors(edge)
-    |> Enum.filter(&Enum.member?(other_edges, &1))
+    neighbors =
+      edge_neighbors(edge)
+      |> Enum.filter(&MapSet.member?(other_edges, &1))
+
+    other_edges =
+      neighbors
+      |> Enum.reduce(other_edges, fn neighbor, other_edges ->
+        MapSet.delete(other_edges, neighbor)
+      end)
+
+    neighbors
     |> Enum.reduce({side, other_edges}, fn neighbor, {side, other_edges} ->
-      if Enum.member?(other_edges, neighbor),
-        do: greedy_side(neighbor, Enum.reject(other_edges, &(&1 == neighbor)), side),
-        else: {side, other_edges}
+      side(neighbor, other_edges, side)
     end)
   end
 
-  defp edge_neighbors({position, direction}) do
-    {x, y} = position
-
-    if direction in [:up, :down] do
+  defp edge_neighbors({pos, side}) do
+    # neighbors of top and bottom edges are to the left and right
+    # and vice versa
+    if side in [:up, :down] do
       [
-        {x - 1, y},
-        {x + 1, y}
+        @offsets[:left],
+        @offsets[:right]
       ]
     else
       [
-        {x, y - 1},
-        {x, y + 1}
+        @offsets[:up],
+        @offsets[:down]
       ]
     end
-    |> Enum.map(&{&1, direction})
-  end
-
-  @opposite_directions %{
-    up: :down,
-    down: :up,
-    left: :right,
-    right: :left
-  }
-
-  defp annihilate_same_edges(all_edges),
-    do: annihilate_same_edges(all_edges, all_edges)
-
-  defp annihilate_same_edges(edges, all_edges, acc \\ [])
-  defp annihilate_same_edges([], _all_edges, acc), do: acc
-
-  defp annihilate_same_edges([edge | rest], all_edges, acc) do
-    corresponding_edge = corresponding_edge(edge)
-
-    if Enum.member?(all_edges, corresponding_edge),
-      do: annihilate_same_edges(rest, all_edges, acc),
-      else: annihilate_same_edges(rest, all_edges, [edge | acc])
-  end
-
-  defp corresponding_edge({pos, direction}) do
-    {x, y} = pos
-
-    position =
-      Map.get(@offsets, direction)
-      |> then(fn {dx, dy} -> {x + dx, y + dy} end)
-
-    {position, Map.get(@opposite_directions, direction)}
+    |> Enum.map(&move(pos, &1))
+    |> Enum.map(&{&1, side})
   end
 end

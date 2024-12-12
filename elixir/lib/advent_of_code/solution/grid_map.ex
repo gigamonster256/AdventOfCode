@@ -134,6 +134,15 @@ defmodule AdventOfCode.Solution.GridMap do
       |> Map.values()
       |> Enum.uniq()
     end
+
+    def uniq_find(input) do
+      {map, _row_count, _col_count} = input
+
+      map
+      |> Enum.reduce(%{}, fn {pos, char}, acc ->
+        Map.update(acc, char, [pos], &[pos | &1])
+      end)
+    end
   end
 
   defmacro __using__(_) do
