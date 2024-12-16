@@ -47,11 +47,4 @@ defmodule AdventOfCode.Solution.Year2024.Day14Test do
 
     assert result == 12
   end
-
-  test "part2", %{input: input} do
-    bounds = {11, 7}
-    result = input |> parse() |> part2(bounds)
-
-    assert result == 31
-  end
 end

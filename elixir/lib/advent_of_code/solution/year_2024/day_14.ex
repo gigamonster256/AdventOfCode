@@ -87,10 +87,6 @@ defmodule AdventOfCode.Solution.Year2024.Day14 do
   end
 
   defp partition(positions, bounds) do
-    {bx, by} = bounds
-    midx = div(bx - 1, 2)
-    midy = div(by - 1, 2)
-
     default = %{
       tl: [],
       tr: [],
@@ -98,15 +94,26 @@ defmodule AdventOfCode.Solution.Year2024.Day14 do
       br: []
     }
 
-    Enum.reduce(positions, default, fn {x, y} = pos, acc ->
-      cond do
-        x < midx and y < midy -> Map.update!(acc, :tl, &[pos | &1])
-        x > midx and y < midy -> Map.update!(acc, :tr, &[pos | &1])
-        x < midx and y > midy -> Map.update!(acc, :bl, &[pos | &1])
-        x > midx and y > midy -> Map.update!(acc, :br, &[pos | &1])
-        true -> acc
+    Enum.reduce(positions, default, fn pos, acc ->
+      case quadrant(pos, bounds) do
+        :none -> acc
+        quad -> Map.update!(acc, quad, &[pos | &1])
       end
     end)
+  end
+
+  defp quadrant({x, y}, bounds) do
+    {bx, by} = bounds
+    midx = div(bx - 1, 2)
+    midy = div(by - 1, 2)
+
+    cond do
+      x < midx and y < midy -> :tl
+      x > midx and y < midy -> :tr
+      x < midx and y > midy -> :bl
+      x > midx and y > midy -> :br
+      true -> :none
+    end
   end
 
   defp symmetric_difference(partitions, bounds) do
