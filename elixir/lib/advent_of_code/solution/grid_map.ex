@@ -143,6 +143,18 @@ defmodule AdventOfCode.Solution.GridMap do
         Map.update(acc, char, [pos], &[pos | &1])
       end)
     end
+
+    def as_string(input) do
+      {_map, row_count, col_count} = input
+
+      0..(row_count - 1)
+      |> Enum.map(fn y ->
+        0..(col_count - 1)
+        |> Enum.map(fn x -> get(input, {x, y}) end)
+        |> Enum.join()
+      end)
+      |> Enum.join("\n")
+    end
   end
 
   defmacro __using__(_) do
